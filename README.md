@@ -9,7 +9,7 @@ cd frontend npm install npm run dev
 
 The frontend calls http://localhost:8000/predict.
 
-Model note
+
 The target labels are project-defined heuristic labels based primarily on signal strength; they are not independently measured satellite-link ground truth.................nothing changed as i said what i pasted it is same only
 
 > **SatLink AI** predicts satellite link quality with a trained Random Forest model, offering a sleek web UI and a FastAPI backend.

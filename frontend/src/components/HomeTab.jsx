@@ -1,226 +1,167 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-export default function HomeTab({ onNavigate, onLoadPreset, result }) {
+export default function HomeTab({ onLoadPreset, isLoading, result }) {
+  const [selectedScenario, setSelectedScenario] = useState('good');
+
+  const handleSelectScenario = (type) => {
+    setSelectedScenario(type);
+    if (onLoadPreset) {
+      onLoadPreset(type);
+    }
+  };
+
   const currentPrediction = result?.prediction || 'Good';
-  const isGood = currentPrediction === 'Good';
-  const isWeak = currentPrediction === 'Weak';
-  const statusColor = isGood ? '#10b981' : isWeak ? '#f59e0b' : '#ef4444';
+  const displayClass = (currentPrediction === 'High Risk of Disconnection' || currentPrediction === 'Degraded')
+    ? 'Degraded'
+    : (currentPrediction === 'Weak' ? 'Weak' : 'Good');
+
+  const confidence = result?.probabilities
+    ? (result.probabilities[currentPrediction] ?? result.probabilities[displayClass] ?? null)
+    : null;
 
   return (
-    <div className="tab-page home-page-container">
-      {/* Hero Section */}
-      <section className="home-hero-section">
-        <div className="hero-badge-pill">
-          <span className="pulsing-green-dot"></span>
-          <span>AI-Driven Satellite Telemetry Suite &bull; B.Tech Final Year Project</span>
-        </div>
-
-        <h1 className="home-hero-title">
-          Intelligent Satellite Communication <br />
-          <span className="hero-gradient-text">Quality &amp; Degradation Prediction</span>
-        </h1>
-
-        <p className="home-hero-subtitle">
-          Real-time Machine Learning platform analyzing RF propagation, atmospheric rain fade,
-          and co-channel interference to predict satellite link viability and protect mission-critical downlinks.
+    <div className="tab-page home-page-clean">
+      {/* 1. Title + one-line subtitle */}
+      <header className="home-header">
+        <h1 className="home-title">SatLink AI</h1>
+        <p className="home-subtitle">
+          Predicts satellite link quality from weather and interference, and suggests an action.
         </p>
+      </header>
 
-        <div className="home-hero-actions">
+      {/* 2. Three demo scenarios */}
+      <section className="scenarios-section">
+        <div className="scenarios-grid">
+          {/* Clear Sky Pass */}
+          <div
+            className={`scenario-card ${selectedScenario === 'good' ? 'selected' : ''}`}
+            onClick={() => handleSelectScenario('good')}
+          >
+            <div className="scenario-card-header">
+              <h3 className="scenario-title">Clear Sky Pass</h3>
+              <span className="badge badge-good">Good</span>
+            </div>
+            <p className="scenario-desc">Clear weather, no interference.</p>
+          </div>
+
+          {/* Monsoon Storm */}
+          <div
+            className={`scenario-card ${selectedScenario === 'rain' ? 'selected' : ''}`}
+            onClick={() => handleSelectScenario('rain')}
+          >
+            <div className="scenario-card-header">
+              <h3 className="scenario-title">Monsoon Storm</h3>
+              <span className="badge badge-degraded">Degraded</span>
+            </div>
+            <p className="scenario-desc">Heavy rain weakens the signal.</p>
+          </div>
+
+          {/* Co-Channel Interference */}
+          <div
+            className={`scenario-card ${selectedScenario === 'interference' ? 'selected' : ''}`}
+            onClick={() => handleSelectScenario('interference')}
+          >
+            <div className="scenario-card-header">
+              <h3 className="scenario-title">Co-Channel Interference</h3>
+              <span className="badge badge-weak">Weak</span>
+            </div>
+            <p className="scenario-desc">Nearby signals disturb the link.</p>
+          </div>
+        </div>
+
+        <div className="predict-action-row">
           <button
             type="button"
-            className="btn-hero-primary"
-            onClick={() => onNavigate('predict')}
+            className="btn-run-prediction"
+            disabled={isLoading}
+            onClick={() => onLoadPreset(selectedScenario)}
           >
-            <span>Launch Predictor</span>
-          </button>
-
-          <button
-            type="button"
-            className="btn-hero-secondary"
-            onClick={() => {
-              onLoadPreset('good');
-              onNavigate('predict');
-            }}
-          >
-            <span>Run Instant Simulation</span>
-          </button>
-
-          <button
-            type="button"
-            className="btn-hero-ghost"
-            onClick={() => onNavigate('graphs')}
-          >
-            <span>View Spectral Analytics</span>
+            {isLoading ? 'Running Prediction...' : 'Run Prediction'}
           </button>
         </div>
       </section>
 
-
-
-      {/* Metrics Counter Bar */}
-      <section className="home-stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">LEO</div>
-          <div className="stat-info">
-            <div className="stat-num">LEO 400km</div>
-            <div className="stat-desc">Orbital Tracking Altitude</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">ms</div>
-          <div className="stat-info">
-            <div className="stat-num">&lt; 15 ms</div>
-            <div className="stat-desc">FastAPI Model Inference</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">RF</div>
-          <div className="stat-info">
-            <div className="stat-num">Random Forest</div>
-            <div className="stat-desc">Multi-Class Classifier</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">17</div>
-          <div className="stat-info">
-            <div className="stat-num">17 Features</div>
-            <div className="stat-desc">RF &amp; Atmospheric Parameters</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Test Scenarios (1-Click Viva Presets) */}
-      <section className="home-section-presets">
-        <div className="section-heading-row">
-          <div>
-            <h2 className="section-title">One-Click Demonstration Scenarios</h2>
-            <p className="section-subtitle">
-              Instantly test and verify trained machine learning model responses under standard satellite operating environments.
-            </p>
-          </div>
-        </div>
-
-        <div className="presets-cards-grid">
-          <div
-            className="preset-action-card preset-good-card"
-            onClick={() => {
-              onLoadPreset('good');
-              onNavigate('predict');
-            }}
-          >
-            <div className="preset-card-top">
-              <span className="preset-pill pill-good">Nominal Link</span>
+      {/* 3. Prediction Result Area */}
+      {result && (
+        <section className="result-section">
+          <div className="result-card">
+            <div className="result-main-row">
+              <span className={`result-badge badge-${displayClass.toLowerCase()}`}>
+                {displayClass}
+              </span>
+              {confidence !== null && (
+                <span className="result-confidence">{confidence}% confidence</span>
+              )}
             </div>
-            <h3 className="preset-card-title">Clear Sky Pass</h3>
-            <p className="preset-card-desc">
-              Sunny atmosphere, 0 mm precipitation, high SNR (-38 dBm), zero RF interference. Expected classification: <strong>Good</strong>.
+
+            <p className="result-recommendation">
+              {result.recommendation || 'Communication conditions are currently stable. Continue normal monitoring.'}
             </p>
-            <div className="preset-card-footer">
-              <span>Load &amp; Predict &rarr;</span>
-            </div>
-          </div>
 
-          <div
-            className="preset-action-card preset-rain-card"
-            onClick={() => {
-              onLoadPreset('rain');
-              onNavigate('predict');
-            }}
-          >
-            <div className="preset-card-top">
-              <span className="preset-pill pill-warn">Rain Fade</span>
-            </div>
-            <h3 className="preset-card-title">Monsoon Storm</h3>
-            <p className="preset-card-desc">
-              Heavy 42 mm/hr precipitation, 95% humidity, high attenuation (-89 dBm). Demonstrates rapid link degradation: <strong>Weak / Degraded</strong>.
-            </p>
-            <div className="preset-card-footer">
-              <span>Load &amp; Predict &rarr;</span>
-            </div>
-          </div>
+            <details className="result-details">
+              <summary className="result-details-summary">Show details</summary>
+              <div className="result-details-body">
+                <div className="details-col">
+                  <span className="details-col-title">Class Probabilities</span>
+                  <div className="details-item">
+                    <span>Good:</span>
+                    <span>{result.probabilities?.['Good'] ?? 0}%</span>
+                  </div>
+                  <div className="details-item">
+                    <span>Weak:</span>
+                    <span>{result.probabilities?.['Weak'] ?? 0}%</span>
+                  </div>
+                  <div className="details-item">
+                    <span>Degraded:</span>
+                    <span>
+                      {result.probabilities?.['Degraded'] ??
+                        result.probabilities?.['High Risk of Disconnection'] ??
+                        0}%
+                    </span>
+                  </div>
+                </div>
 
-          <div
-            className="preset-action-card preset-jam-card"
-            onClick={() => {
-              onLoadPreset('interference');
-              onNavigate('predict');
-            }}
-          >
-            <div className="preset-card-top">
-              <span className="preset-pill pill-danger">RF Jamming</span>
-            </div>
-            <h3 className="preset-card-title">Co-Channel Interference</h3>
-            <p className="preset-card-desc">
-              Severe overlapping RF signals, terrestrial Wi-Fi bleed (-24 dBm). Demonstrates signal collision: <strong>Weak / Degraded</strong>.
-            </p>
-            <div className="preset-card-footer">
-              <span>Load &amp; Predict &rarr;</span>
-            </div>
+                {result.inputs && (
+                  <div className="details-col">
+                    <span className="details-col-title">Input Conditions</span>
+                    <div className="details-item">
+                      <span>Frequency:</span>
+                      <span>{(result.inputs.frequency / 1e6).toFixed(0)} MHz</span>
+                    </div>
+                    <div className="details-item">
+                      <span>Signal Strength:</span>
+                      <span>{result.inputs.signal_strength} dBm</span>
+                    </div>
+                    <div className="details-item">
+                      <span>Weather:</span>
+                      <span>{result.inputs.weather_condition}</span>
+                    </div>
+                    <div className="details-item">
+                      <span>Precipitation:</span>
+                      <span>{result.inputs.precipitation} mm/h</span>
+                    </div>
+                    <div className="details-item">
+                      <span>Interference:</span>
+                      <span>{result.inputs.interference_type}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </details>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* Feature Bento Grid */}
-      <section className="home-bento-section">
-        <h2 className="section-title">Core System Capabilities</h2>
-        <p className="section-subtitle">
-          How SatLink AI bridges radio frequency engineering with predictive data science.
-        </p>
-
-        <div className="bento-grid">
-          <div className="bento-card">
-            <h3>Atmospheric Loss &amp; Rain Fade</h3>
-            <p>
-              Quantifies electromagnetic signal absorption caused by precipitation, ambient moisture, and barometric pressure drops across satellite slant paths.
-            </p>
-          </div>
-
-          <div className="bento-card">
-            <h3>Random Forest Inference Engine</h3>
-            <p>
-              Employs an ensemble of decision trees trained on normalized frequency spectra to output probabilistic confidence scores across Good, Weak, and Degraded classes.
-            </p>
-          </div>
-
-          <div className="bento-card">
-            <h3>Automated Quality Mitigation</h3>
-            <p>
-              Instantly recommends remedial countermeasures—including transmit power stepping, antenna realignment, or adaptive coding—before a link outage occurs.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Architecture Workflow Strip */}
-      <section className="home-workflow-section">
-        <h2 className="section-title">End-to-End Operational Pipeline</h2>
-        <div className="workflow-steps">
-          <div className="workflow-step">
-            <span className="step-badge">01</span>
-            <h4>Telemetry Ingestion</h4>
-            <p>Captures carrier frequency, signal power, weather, and altitude.</p>
-          </div>
-          <div className="step-arrow">&rarr;</div>
-          <div className="workflow-step">
-            <span className="step-badge">02</span>
-            <h4>Feature Vectorization</h4>
-            <p>One-hot encodes weather conditions and interference types into 17 features.</p>
-          </div>
-          <div className="step-arrow">&rarr;</div>
-          <div className="workflow-step">
-            <span className="step-badge">03</span>
-            <h4>Random Forest Model</h4>
-            <p>Evaluates multi-variable regression trees to calculate class probabilities.</p>
-          </div>
-          <div className="step-arrow">&rarr;</div>
-          <div className="workflow-step">
-            <span className="step-badge">04</span>
-            <h4>Assessment &amp; Advisory</h4>
-            <p>Outputs classification report with actionable engineering recommendations.</p>
-          </div>
+      {/* 4. Compact Pipeline Row */}
+      <section className="pipeline-section">
+        <div className="pipeline-row">
+          <span className="pipeline-step">Input Conditions</span>
+          <span className="pipeline-arrow">&rarr;</span>
+          <span className="pipeline-step">Random Forest</span>
+          <span className="pipeline-arrow">&rarr;</span>
+          <span className="pipeline-step">Link Quality</span>
+          <span className="pipeline-arrow">&rarr;</span>
+          <span className="pipeline-step">Recommendation</span>
         </div>
       </section>
     </div>

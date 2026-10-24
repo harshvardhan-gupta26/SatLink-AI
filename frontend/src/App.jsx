@@ -79,11 +79,11 @@ export default function App() {
     } else if (type === 'interference') {
       preset = {
         ...DEFAULT_INPUTS,
-        signal_strength: -76,
+        signal_strength: -65,
         weather_condition: 'Cloudy',
         precipitation: 0,
         interference_type: 'Co-channel',
-        wifi_strength: -24
+        wifi_strength: -45
       };
     }
     setFormData(preset);
@@ -113,14 +113,32 @@ export default function App() {
       }
 
       const data = await res.json();
-      setResult(data);
+      
+      const rawPrediction = data.prediction;
+      const normalizedPrediction = (rawPrediction === 'High Risk of Disconnection' || rawPrediction === 'Degraded')
+        ? 'Degraded'
+        : (rawPrediction === 'Weak' ? 'Weak' : 'Good');
+
+      const normalizedProbabilities = {};
+      Object.entries(data.probabilities || {}).forEach(([k, v]) => {
+        const normKey = (k === 'High Risk of Disconnection' || k === 'Degraded') ? 'Degraded' : k;
+        normalizedProbabilities[normKey] = v;
+      });
+
+      const normalizedData = {
+        ...data,
+        prediction: normalizedPrediction,
+        probabilities: normalizedProbabilities
+      };
+
+      setResult(normalizedData);
 
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       setHistory(prev => [
         {
           timestamp: timeStr,
-          prediction: data.prediction,
-          probabilities: data.probabilities,
+          prediction: normalizedPrediction,
+          probabilities: normalizedProbabilities,
           inputs: payload
         },
         ...prev.slice(0, 19)
@@ -188,10 +206,8 @@ export default function App() {
         {activeTab === 'home' && (
           <HomeTab
             onNavigate={setActiveTab}
-            onLoadPreset={(type) => {
-              handleLoadPreset(type);
-              setActiveTab('predict');
-            }}
+            onLoadPreset={handleLoadPreset}
+            isLoading={isLoading}
             result={result}
           />
         )}
@@ -233,7 +249,6 @@ export default function App() {
       <footer className="site-footer-simple">
         <div className="footer-inner">
           <span>SatLink AI &middot; Satellite Link Quality Prediction System</span>
-          <span>Final Year Project Presentation (2025&ndash;2026)</span>
         </div>
       </footer>
     </div>

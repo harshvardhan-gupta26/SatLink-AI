@@ -54,7 +54,7 @@ export default function HistoryTab({ history, onRestore, onClear, onExport }) {
           <span className="summary-number text-amber">{weakCount}</span>
         </div>
         <div className="summary-box">
-          <span className="summary-label">High Risk</span>
+          <span className="summary-label">Degraded Links</span>
           <span className="summary-number text-red">{dangerCount}</span>
         </div>
       </div>
